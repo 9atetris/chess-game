@@ -19,7 +19,11 @@ mod systems {
     mod special_moves;
 }
 
+mod chess_game;
+
 use systems::actions;
 use systems::init_game;
 use systems::move_validation;
 use systems::special_moves;
+
+use chess_game::ChessGame;
