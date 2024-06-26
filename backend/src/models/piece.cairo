@@ -51,7 +51,7 @@ trait PieceUtilsTrait {
 }
 
 impl PieceUtils of PieceUtilsTrait {
-    fn to_string(piece: Piece) -> felt252 {
+    fn to_string(piece: @Piece) -> felt252 {
         let piece_type = piece.get_type();
         let color = if piece.get_color() { 'W' } else { 'B' };
         let type_char = match piece_type {
