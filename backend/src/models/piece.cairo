@@ -46,11 +46,11 @@ impl PieceImpl of PieceTrait {
 }
 
 // ユーティリティ関数
-trait PieceUtils {
+trait PieceUtilsTrait {
     fn to_string(self: @Piece) -> felt252;
 }
 
-impl PieceUtils {
+impl PieceUtils of PieceUtilsTrait {
     fn to_string(piece: Piece) -> felt252 {
         let piece_type = piece.get_type();
         let color = if piece.get_color() { 'W' } else { 'B' };
@@ -63,6 +63,6 @@ impl PieceUtils {
             KING => 'K',
             _ => '-',
         };
-        color.into() * 256 + type_char.into()
+        color.into() * 256 + type_char.into();
     }
 }
