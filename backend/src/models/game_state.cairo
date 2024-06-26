@@ -3,7 +3,7 @@ use option::OptionTrait;
 use super::position::Position;
 
 #[derive(Component, Copy, Drop, Serde)]
-struct GameState {
+pub struct GameState {
     turn: bool,
     status: u8, // 0=ongoing, 1=checkmate, 2=stalemate
     en_passant: Option<Position>,
