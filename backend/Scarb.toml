@@ -1,6 +1,6 @@
 [package]
 cairo-version = "2.6.3"
-name = "chess game"
+name = "chess_game"
 version = "0.1.0"
 
 [cairo]
