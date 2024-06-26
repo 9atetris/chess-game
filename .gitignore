@@ -32,3 +32,7 @@ yarn-error.log*
 #target file
 /target/
 backend/target/
+
+#build error log
+backend/build_errors.log/
+backend/build_errors.log
