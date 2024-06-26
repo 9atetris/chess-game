@@ -31,3 +31,4 @@ yarn-error.log*
 
 #target file
 /target/
+backend/target/
