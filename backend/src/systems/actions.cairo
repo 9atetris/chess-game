@@ -2,11 +2,11 @@ use array::ArrayTrait;
 use option::OptionTrait;
 use traits::Into;
 use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
-use chess_game::models::position::Position;
-use chess_game::models::piece::{Piece, PieceTrait};
-use chess_game::models::player::Player;
-use chess_game::models::game_state::GameState;
-use chess_game::models::move_history::MoveHistory;
+use crate::models::position::Position;
+use crate::models::piece::{Piece, PieceTrait};
+use crate::models::player::Player;
+use crate::models::game_state::GameState;
+use crate::models::move_history::MoveHistory;
 
 const BOARD_SIZE: u8 = 8;
 const PAWN: u8 = 1;
