@@ -29,7 +29,7 @@ private_key = "0x2bbf4f9fd0bbb2e60b0316c1fe0b76cf7a4d0198bd493ced9b8df2a3a24d68a
 [tool.dojo.world]
 name = "Chess Game"
 description = "Onchain chess using Dojo"
-//website = ""
+website = ""
 
 [tool.dojo.world.socials]
 x = "https://x.com/ohayo_dojo"
