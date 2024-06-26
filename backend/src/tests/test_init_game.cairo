@@ -10,9 +10,21 @@ use chess_game::constants::{PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING, WHITE, BLAC
 
 // ヘルパー関数
 fn setup_world() -> IWorldDispatcher {
-    // TODO: 実際のDojo world設定に合わせて実装する
-    let world = IWorldDispatcher { ... };
-    world
+    // 必要なモデルのクラスハッシュのリストを作成
+    // 注: これらのクラスハッシュは実際のモデル定義に基づいて更新する必要があります
+    let mut models = array![
+        chess_game::models::position::TEST_CLASS_HASH,
+        chess_game::models::piece::TEST_CLASS_HASH,
+        chess_game::models::player::TEST_CLASS_HASH,
+        chess_game::models::game_state::TEST_CLASS_HASH,
+        chess_game::models::move_history::TEST_CLASS_HASH
+    ];
+
+    // テストワールドを生成
+    let world = spawn_test_world(models);
+
+    // IWorldDispatcherトレイトを実装したWorldDispatcherを返す
+    WorldDispatcher { world }
 }
 
 #[test]
