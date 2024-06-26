@@ -27,6 +27,7 @@ enum ChessError {
     CastlingNotAllowed,
     EnPassantNotAvailable,
     PromotionRequired,
+    InvalidPieceType,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -34,6 +35,33 @@ struct PieceMoved {
     from: Position,
     to: Position,
     piece: Piece
+}
+
+#[derive(Drop, starknet::Event)]
+struct PieceCaptured {
+    position: Position,
+    piece: Piece
+}
+
+#[derive(Drop, starknet::Event)]
+struct CastlingPerformed {
+    king_from: Position,
+    king_to: Position,
+    rook_from: Position,
+    rook_to: Position
+}
+
+#[derive(Drop, starknet::Event)]
+struct PawnPromoted {
+    from: Position,
+    to: Position,
+    new_piece: Piece
+}
+
+#[derive(Drop, starknet::Event)]
+struct GameEnded {
+    winner: Option<bool>,
+    reason: felt252
 }
 
 #[system]
@@ -62,16 +90,18 @@ mod actions {
         }
 
         // Check if the move is valid
-        if !is_valid_move(world, from, to, piece, game_state)? {
-            return Result::Err(ChessError::InvalidMove);
-        }
+        is_valid_move(world, from, to, piece, game_state)?;
 
         // Capture piece if present
         let captured = get!(world, to, Piece);
+        if captured.get_type() != 0 {
+            emit!(world, PieceCaptured { position: to, piece: captured });
+        }
         
         // Move the piece
         set!(world, (from, Piece::new(0, false)));
         set!(world, (to, piece));
+        emit!(world, PieceMoved { from, to, piece });
 
         // Handle special moves (castling, en passant, promotion)
         handle_special_moves(world, from, to, piece, game_state)?;
@@ -92,13 +122,21 @@ mod actions {
         // Record move history
         record_move(world, from, to, piece, captured);
 
-        // Emit move event
-        emit!(world, PieceMoved { from, to, piece });
+        // Check if the game has ended
+        if game_state.status != 0 {
+            let winner = if game_state.status == 1 { 
+                Option::Some(!player.color) 
+            } else { 
+                Option::None 
+            };
+            let reason = if game_state.status == 1 { 'checkmate' } else { 'stalemate' };
+            emit!(world, GameEnded { winner, reason });
+        }
 
         Result::Ok(())
     }
 
-    fn is_valid_move(world: IWorldDispatcher, from: Position, to: Position, piece: Piece, game_state: GameState) -> Result<bool, ChessError> {
+    fn is_valid_move(world: IWorldDispatcher, from: Position, to: Position, piece: Piece, game_state: GameState) -> Result<(), ChessError> {
         // Check if the move is within the board
         if to.x >= BOARD_SIZE || to.y >= BOARD_SIZE {
             return Result::Err(ChessError::OutOfBounds);
@@ -107,63 +145,91 @@ mod actions {
         // Check if the destination is not occupied by a piece of the same color
         let destination_piece = get!(world, to, Piece);
         if destination_piece.get_type() != 0 && destination_piece.get_color() == piece.get_color() {
-            return Result::Ok(false);
+            return Result::Err(ChessError::InvalidMove);
         }
 
         // Check specific piece movement rules
         let valid = match piece.get_type() {
-            PAWN => is_valid_pawn_move(from, to, piece.get_color(), game_state.en_passant),
-            ROOK => is_valid_rook_move(from, to),
-            KNIGHT => is_valid_knight_move(from, to),
-            BISHOP => is_valid_bishop_move(from, to),
-            QUEEN => is_valid_queen_move(from, to),
-            KING => is_valid_king_move(from, to, game_state.castling_rights),
-            _ => false,
+            PAWN => is_valid_pawn_move(from, to, piece.get_color(), game_state.en_passant)?,
+            ROOK => is_valid_rook_move(from, to)?,
+            KNIGHT => is_valid_knight_move(from, to)?,
+            BISHOP => is_valid_bishop_move(from, to)?,
+            QUEEN => is_valid_queen_move(from, to)?,
+            KING => is_valid_king_move(from, to, game_state.castling_rights)?,
+            _ => return Result::Err(ChessError::InvalidPieceType),
         };
 
-        Result::Ok(valid)
+        if !valid {
+            return Result::Err(ChessError::InvalidMove);
+        }
+
+        Result::Ok(())
     }
 
-    fn is_valid_pawn_move(from: Position, to: Position, color: bool, en_passant: Option<Position>) -> bool {
+    fn is_valid_pawn_move(from: Position, to: Position, color: bool, en_passant: Option<Position>) -> Result<bool, ChessError> {
         let direction = if color { 1 } else { -1 };
         let forward_move = to.y - from.y == direction;
         let double_move = to.y - from.y == 2 * direction && from.y == (if color { 1 } else { 6 });
         let capture_move = (to.y - from.y == direction) && ((to.x - from.x).abs() == 1);
 
-        forward_move || double_move || capture_move || 
-            (en_passant == Option::Some(to) && capture_move)
+        if forward_move || double_move || capture_move || 
+            (en_passant == Option::Some(to) && capture_move) {
+            Result::Ok(true)
+        } else {
+            Result::Err(ChessError::InvalidMove)
+        }
     }
 
-    fn is_valid_rook_move(from: Position, to: Position) -> bool {
-        from.x == to.x || from.y == to.y
+    fn is_valid_rook_move(from: Position, to: Position) -> Result<bool, ChessError> {
+        if from.x == to.x || from.y == to.y {
+            Result::Ok(true)
+        } else {
+            Result::Err(ChessError::InvalidMove)
+        }
     }
 
-    fn is_valid_knight_move(from: Position, to: Position) -> bool {
+    fn is_valid_knight_move(from: Position, to: Position) -> Result<bool, ChessError> {
         let dx = (to.x - from.x).abs();
         let dy = (to.y - from.y).abs();
-        (dx == 2 && dy == 1) || (dx == 1 && dy == 2)
+        if (dx == 2 && dy == 1) || (dx == 1 && dy == 2) {
+            Result::Ok(true)
+        } else {
+            Result::Err(ChessError::InvalidMove)
+        }
     }
 
-    fn is_valid_bishop_move(from: Position, to: Position) -> bool {
-        (to.x - from.x).abs() == (to.y - from.y).abs()
+    fn is_valid_bishop_move(from: Position, to: Position) -> Result<bool, ChessError> {
+        if (to.x - from.x).abs() == (to.y - from.y).abs() {
+            Result::Ok(true)
+        } else {
+            Result::Err(ChessError::InvalidMove)
+        }
     }
 
-    fn is_valid_queen_move(from: Position, to: Position) -> bool {
-        is_valid_rook_move(from, to) || is_valid_bishop_move(from, to)
+    fn is_valid_queen_move(from: Position, to: Position) -> Result<bool, ChessError> {
+        if is_valid_rook_move(from, to).is_ok() || is_valid_bishop_move(from, to).is_ok() {
+            Result::Ok(true)
+        } else {
+            Result::Err(ChessError::InvalidMove)
+        }
     }
 
-    fn is_valid_king_move(from: Position, to: Position, castling_rights: u8) -> bool {
+    fn is_valid_king_move(from: Position, to: Position, castling_rights: u8) -> Result<bool, ChessError> {
         let dx = (to.x - from.x).abs();
         let dy = (to.y - from.y).abs();
-        (dx <= 1 && dy <= 1) || 
+        if (dx <= 1 && dy <= 1) || 
             (dx == 2 && dy == 0 && ((from.y == 0 && (castling_rights & 0b0011) != 0) || 
-                                    (from.y == 7 && (castling_rights & 0b1100) != 0)))
+                                    (from.y == 7 && (castling_rights & 0b1100) != 0))) {
+            Result::Ok(true)
+        } else {
+            Result::Err(ChessError::InvalidMove)
+        }
     }
 
     fn handle_special_moves(world: IWorldDispatcher, from: Position, to: Position, piece: Piece, mut game_state: GameState) -> Result<(), ChessError> {
         // Handle castling
         if piece.get_type() == KING && (to.x - from.x).abs() == 2 {
-            if !can_castle(world, from, to, piece.get_color(), game_state.castling_rights) {
+            if !can_castle(world, from, to, piece.get_color(), game_state.castling_rights)? {
                 return Result::Err(ChessError::CastlingNotAllowed);
             }
             let rook_from = Position { x: if to.x > from.x { 7 } else { 0 }, y: from.y };
@@ -171,12 +237,15 @@ mod actions {
             let rook = get!(world, rook_from, Piece);
             set!(world, (rook_from, Piece::new(0, false)));
             set!(world, (rook_to, rook));
+            emit!(world, CastlingPerformed { king_from: from, king_to: to, rook_from, rook_to });
         }
 
         // Handle en passant
         if piece.get_type() == PAWN && game_state.en_passant == Option::Some(to) {
             let captured_pawn = Position { x: to.x, y: from.y };
+            let captured = get!(world, captured_pawn, Piece);
             set!(world, (captured_pawn, Piece::new(0, false)));
+            emit!(world, PieceCaptured { position: captured_pawn, piece: captured });
         }
 
         // Set en passant for next move
@@ -188,7 +257,9 @@ mod actions {
 
         // Handle pawn promotion (simplified: always promote to queen)
         if piece.get_type() == PAWN && (to.y == 0 || to.y == 7) {
-            set!(world, (to, Piece::new(QUEEN, piece.get_color())));
+            let promoted_piece = Piece::new(QUEEN, piece.get_color());
+            set!(world, (to, promoted_piece));
+            emit!(world, PawnPromoted { from, to, new_piece: promoted_piece });
         }
 
         // Update castling rights
@@ -206,31 +277,31 @@ mod actions {
         Result::Ok(())
     }
 
-    fn can_castle(world: IWorldDispatcher, from: Position, to: Position, color: bool, castling_rights: u8) -> bool {
+    fn can_castle(world: IWorldDispatcher, from: Position, to: Position, color: bool, castling_rights: u8) -> Result<bool, ChessError> {
         let king_side = to.x > from.x;
         let rank = if color { 0 } else { 7 };
         let rights = if color { 0b0011 } else { 0b1100 };
         
         if (castling_rights & rights) == 0 {
-            return false;
+            return Result::Err(ChessError::CastlingNotAllowed);
         }
 
         let rook_x = if king_side { 7 } else { 0 };
         let rook = get!(world, (rook_x, rank), Piece);
         if rook.get_type() != ROOK || rook.get_color() != color {
-            return false;
+            return Result::Err(ChessError::CastlingNotAllowed);
         }
 
         let direction = if king_side { 1 } else { -1 };
         let mut x = from.x + direction;
         while x != rook_x {
             if get!(world, (x, rank), Piece).get_type() != 0 {
-                return false;
+                return Result::Err(ChessError::CastlingNotAllowed);
             }
             x += direction;
         }
 
-        true
+        Result::Ok(true)
     }
 
     fn check_game_status(world: IWorldDispatcher, color: bool) -> u8 {
@@ -286,7 +357,7 @@ mod actions {
             for y in 0..BOARD_SIZE {
                 let piece = get!(world, (x, y), Piece);
                 if piece.get_type() != 0 && piece.get_color() != color {
-                    if is_valid_move(world, Position { x, y }, king_pos, piece, GameState::default()).unwrap() {
+                    if is_valid_move(world, Position { x, y }, king_pos, piece, GameState::default()).is_ok() {
                         return true;
                     }
                 }
@@ -300,7 +371,7 @@ mod actions {
         for x in 0..BOARD_SIZE {
             for y in 0..BOARD_SIZE {
                 let to = Position { x, y };
-                if is_valid_move(world, from, to, piece, GameState::default()).unwrap() {
+                if is_valid_move(world, from, to, piece, GameState::default()).is_ok() {
                     // Check if this move would leave the king in check
                     let mut test_world = world.clone();
                     set!(test_world, (from, Piece::new(0, false)));
@@ -314,8 +385,8 @@ mod actions {
         false
     }
 
-    fn record_move(world: IWorldDispatcher, from: Position, to: Position, piece: Piece, captured: Option<Piece>) {
-        let move_history = MoveHistory { from, to, piece, captured };
+    fn record_move(world: IWorldDispatcher, from: Position, to: Position, piece: Piece, captured: Piece) {
+        let move_history = MoveHistory { from, to, piece, captured: Option::Some(captured) };
         
         // Get the current move count
         let moves_count = get!(world, 0, (u32, 'moves_count'));
