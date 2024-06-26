@@ -46,6 +46,10 @@ impl PieceImpl of PieceTrait {
 }
 
 // ユーティリティ関数
+trait PieceUtils {
+    fn to_string(self: @Piece) -> felt252;
+}
+
 impl PieceUtils {
     fn to_string(piece: Piece) -> felt252 {
         let piece_type = piece.get_type();
