@@ -1,29 +1,29 @@
-mod models {
-    mod position;
-    mod piece;
-    mod player;
-    mod game_state;
-    mod move_history;
+pub mod models {
+    pub mod position;
+    pub mod piece;
+    pub mod player;
+    pub mod game_state;
+    pub mod move_history;
 }
 
-use models::position::Position;
-use models::piece::Piece;
-use models::player::Player;
-use models::game_state::GameState;
-use models::move_history::MoveHistory;
+pub use models::position::Position;
+pub use models::piece::Piece;
+pub use models::player::Player;
+pub use models::game_state::GameState;
+pub use models::move_history::MoveHistory;
 
-mod systems {
-    mod actions;
-    mod init_game;
-    mod move_validation;
-    mod special_moves;
+pub mod systems {
+    pub mod actions;
+    pub mod init_game;
+    pub mod move_validation;
+    pub mod special_moves;
 }
 
-mod chess_game;
+pub mod chess_game;
 
-use systems::actions;
-use systems::init_game;
-use systems::move_validation;
-use systems::special_moves;
+pub use systems::actions;
+pub use systems::init_game;
+pub use systems::move_validation;
+pub use systems::special_moves;
 
-use chess_game::ChessGame;
+pub use chess_game::ChessGame;

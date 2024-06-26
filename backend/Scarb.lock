@@ -2,6 +2,13 @@
 version = 1
 
 [[package]]
+name = "chess_game"
+version = "0.1.0"
+dependencies = [
+ "dojo",
+]
+
+[[package]]
 name = "dojo"
 version = "0.7.2"
 source = "git+https://github.com/dojoengine/dojo?tag=v0.7.2#3da5cad9fdd39b81551e0668015d88262e6c5fc4"
@@ -13,10 +20,3 @@ dependencies = [
 name = "dojo_plugin"
 version = "0.3.11"
 source = "git+https://github.com/dojoengine/dojo?tag=v0.3.11#1e651b5d4d3b79b14a7d8aa29a92062fcb9e6659"
-
-[[package]]
-name = "dojo_starter"
-version = "0.7.0"
-dependencies = [
- "dojo",
-]
