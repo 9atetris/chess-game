@@ -1,7 +1,6 @@
 use array::ArrayTrait;
 use option::OptionTrait;
 use traits::Into;
-use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 use chess_game::models::position::Position;
 use chess_game::models::piece::{Piece, PieceTrait};
 use chess_game::models::player::Player;
@@ -69,17 +68,16 @@ mod actions {
     use array::ArrayTrait;
     use option::OptionTrait;
     use traits::Into;
-    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
-    use crate::models::position::Position;
-    use crate::models::piece::{Piece, PieceTrait};
-    use crate::models::player::Player;
-    use crate::models::game_state::GameState;
-    use crate::models::move_history::MoveHistory;
+    use chess_game::models::position::Position;
+    use chess_game::models::piece::{Piece, PieceTrait};
+    use chess_game::models::player::Player;
+    use chess_game::models::game_state::GameState;
+    use chess_game::models::move_history::MoveHistory;
 
     use super::{BOARD_SIZE, PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING};
     use super::{ChessError, PieceMoved, PieceCaptured, CastlingPerformed, PawnPromoted, GameEnded};
 
-    fn execute(world: IWorldDispatcher, from: Position, to: Position) -> Result<(), ChessError> {
+    fn execute(world: IWorldDispatcher, origin: felt252, from: Position, to: Position) -> Result<(), ChessError> {
         // Get the current game state
         let mut game_state = get!(world, 0, GameState);
 
@@ -89,7 +87,7 @@ mod actions {
         }
 
         // Check if it's the player's turn
-        let player = get!(world, ctx.origin, Player);
+        let player = get!(world, origin, Player);
         if player.color != game_state.turn {
             return Result::Err(ChessError::NotYourTurn);
         }
