@@ -332,8 +332,8 @@ mod actions {
         let mut is_in_check = is_king_in_check(world, color);
     
         // Iterate through all pieces of the current player
-        for x in 0..BOARD_SIZE {
-            for y in 0..BOARD_SIZE {
+        for x in range(0, BOARD_SIZE) {
+            for y in range(0, BOARD_SIZE) {
                 let piece = get!(world, (x, y), Piece);
                 if piece.get_type() != 0 && piece.get_color() == color {
                     // Check if this piece has any legal moves
@@ -355,14 +355,15 @@ mod actions {
         } else {
             return 0; // Game is ongoing
         }
-    }
+    }    
+    
     
 
     fn is_king_in_check(world: IWorldDispatcher, color: bool) -> bool {
         // Find the king's position
         let mut king_pos = Option::None;
-        for x in 0..BOARD_SIZE {
-            for y in 0..BOARD_SIZE {
+        for x in range(0, BOARD_SIZE) {
+            for y in range(0, BOARD_SIZE) {
                 let piece = get!(world, (x, y), Piece);
                 if piece.get_type() == KING && piece.get_color() == color {
                     king_pos = Option::Some(Position { x, y });
@@ -373,12 +374,12 @@ mod actions {
                 break;
             }
         }
-
+    
         let king_pos = king_pos.unwrap();
-
+    
         // Check if any opponent's piece can capture the king
-        for x in 0..BOARD_SIZE {
-            for y in 0..BOARD_SIZE {
+        for x in range(0, BOARD_SIZE) {
+            for y in range(0, BOARD_SIZE) {
                 let piece = get!(world, (x, y), Piece);
                 if piece.get_type() != 0 && piece.get_color() != color {
                     if is_valid_move(world, Position { x, y }, king_pos, piece, GameState::default()).is_ok() {
@@ -387,13 +388,13 @@ mod actions {
                 }
             }
         }
-
+    
         false
-    }
+    }    
 
     fn has_legal_move(world: IWorldDispatcher, from: Position, piece: Piece) -> bool {
-        for x in 0..BOARD_SIZE {
-            for y in 0..BOARD_SIZE {
+        for x in range(0, BOARD_SIZE) {
+            for y in range(0, BOARD_SIZE) {
                 let to = Position { x, y };
                 if is_valid_move(world, from, to, piece, GameState::default()).is_ok() {
                     // Check if this move would leave the king in check
@@ -408,6 +409,7 @@ mod actions {
         }
         false
     }
+    
 
     fn record_move(world: IWorldDispatcher, from: Position, to: Position, piece: Piece, captured: Piece) {
         let move_history = MoveHistory { from, to, piece, captured: Option::Some(captured) };
