@@ -257,7 +257,7 @@ mod actions {
             set!(world, (rook_to, rook));
             emit!(world, CastlingPerformed { king_from: from, king_to: to, rook_from, rook_to });
         }
-
+    
         // Handle en passant
         if piece.get_type() == PAWN && game_state.en_passant == Option::Some(to) {
             let captured_pawn = Position { x: to.x, y: from.y };
@@ -265,35 +265,39 @@ mod actions {
             set!(world, (captured_pawn, Piece::new(0, false)));
             emit!(world, PieceCaptured { position: captured_pawn, piece: captured });
         }
-
+    
         // Set en passant for next move
         game_state.en_passant = if piece.get_type() == PAWN && (to.y - from.y).abs() == 2 {
             Option::Some(Position { x: from.x, y: (from.y + to.y) / 2 })
         } else {
             Option::None
         };
-
+    
         // Handle pawn promotion (simplified: always promote to queen)
         if piece.get_type() == PAWN && (to.y == 0 || to.y == 7) {
             let promoted_piece = Piece::new(QUEEN, piece.get_color());
             set!(world, (to, promoted_piece));
             emit!(world, PawnPromoted { from, to, new_piece: promoted_piece });
         }
-
+    
         // Update castling rights
         if piece.get_type() == KING {
-            game_state.castling_rights &= if piece.get_color() { 0b1100 } else { 0b0011 };
+            let rights = if piece.get_color() { 0b1100 } else { 0b0011 };
+            game_state.castling_rights &= rights;
         } else if piece.get_type() == ROOK {
             if from.y == 0 {
-                game_state.castling_rights &= if from.x == 0 { 0b1110 } else { 0b1101 };
+                let rights = if from.x == 0 { 0b1110 } else { 0b1101 };
+                game_state.castling_rights &= rights;
             } else if from.y == 7 {
-                game_state.castling_rights &= if from.x == 0 { 0b1011 } else { 0b0111 };
+                let rights = if from.x == 0 { 0b1011 } else { 0b0111 };
+                game_state.castling_rights &= rights;
             }
         }
-
+    
         set!(world, (0, game_state));
         Result::Ok(())
     }
+    
 
     fn can_castle(world: IWorldDispatcher, from: Position, to: Position, color: bool, castling_rights: u8) -> Result<bool, ChessError> {
         let king_side = to.x > from.x;
