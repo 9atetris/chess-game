@@ -55,12 +55,12 @@ impl PieceUtils of PieceUtilsTrait {
         let piece_type = (*piece).get_type();
         let color = if (*piece).get_color() { 'W' } else { 'B' };
         let type_char = match piece_type {
-            _PAWN => 'P',
-            _ROOK => 'R',
-            _KNIGHT => 'N',
-            _BISHOP => 'B',
-            _QUEEN => 'Q',
-            _KING => 'K',
+            1 => 'P', // PAWN
+            2 => 'R', // ROOK
+            3 => 'N', // KNIGHT
+            4 => 'B', // BISHOP
+            5 => 'Q', // QUEEN
+            6 => 'K', // KING
             _ => '-',
         };
         color.into() * 256 + type_char.into()
