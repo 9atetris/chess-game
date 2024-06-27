@@ -54,14 +54,20 @@ impl PieceUtils of PieceUtilsTrait {
     fn to_string(piece: @Piece) -> felt252 {
         let piece_type = (*piece).get_type();
         let color = if (*piece).get_color() { 'W' } else { 'B' };
-        let type_char = match piece_type {
-            1 => 'P', // PAWN
-            2 => 'R', // ROOK
-            3 => 'N', // KNIGHT
-            4 => 'B', // BISHOP
-            5 => 'Q', // QUEEN
-            6 => 'K', // KING
-            _ => '-',
+        let type_char = if piece_type == PAWN {
+            'P'
+        } else if piece_type == ROOK {
+            'R'
+        } else if piece_type == KNIGHT {
+            'N'
+        } else if piece_type == BISHOP {
+            'B'
+        } else if piece_type == QUEEN {
+            'Q'
+        } else if piece_type == KING {
+            'K'
+        } else {
+            '-'
         };
         color.into() * 256 + type_char.into()
     }
