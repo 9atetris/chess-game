@@ -152,29 +152,35 @@ mod actions {
         if to.x >= BOARD_SIZE || to.y >= BOARD_SIZE {
             return Result::Err(ChessError::OutOfBounds);
         }
-
+    
         // Check if the destination is not occupied by a piece of the same color
         let destination_piece = get!(world, to, Piece);
         if destination_piece.get_type() != 0 && destination_piece.get_color() == piece.get_color() {
             return Result::Err(ChessError::InvalidMove);
         }
-
+    
         // Check specific piece movement rules
         let valid = match piece.get_type() {
-            PAWN => is_valid_pawn_move(from, to, piece.get_color(), game_state.en_passant)?,
-            ROOK => is_valid_rook_move(from, to)?,
-            KNIGHT => is_valid_knight_move(from, to)?,
-            BISHOP => is_valid_bishop_move(from, to)?,
-            QUEEN => is_valid_queen_move(from, to)?,
-            KING => is_valid_king_move(from, to, game_state.castling_rights)?,
-            _ => return Result::Err(ChessError::InvalidPieceType),
+            PAWN => is_valid_pawn_move(from, to, piece.get_color(), game_state.en_passant),
+            ROOK => is_valid_rook_move(from, to),
+            KNIGHT => is_valid_knight_move(from, to),
+            BISHOP => is_valid_bishop_move(from, to),
+            QUEEN => is_valid_queen_move(from, to),
+            KING => is_valid_king_move(from, to, game_state.castling_rights),
+            _ => Err(ChessError::InvalidPieceType), // Return Result::Err directly
         };
-
-        if !valid {
-            return Result::Err(ChessError::InvalidMove);
+    
+        // Check the result of the move validation
+        match valid {
+            Ok(valid) => {
+                if !valid {
+                    return Err(ChessError::InvalidMove);
+                }
+            },
+            Err(e) => return Err(e),
         }
-
-        Result::Ok(())
+    
+        Ok(())
     }
 
     fn is_valid_pawn_move(from: Position, to: Position, color: bool, en_passant: Option<Position>) -> Result<bool, ChessError> {
