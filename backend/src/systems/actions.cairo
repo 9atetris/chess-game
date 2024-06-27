@@ -66,7 +66,18 @@ struct GameEnded {
 
 #[system]
 mod actions {
-    use super::*;
+    use array::ArrayTrait;
+    use option::OptionTrait;
+    use traits::Into;
+    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+    use crate::models::position::Position;
+    use crate::models::piece::{Piece, PieceTrait};
+    use crate::models::player::Player;
+    use crate::models::game_state::GameState;
+    use crate::models::move_history::MoveHistory;
+
+    use super::{BOARD_SIZE, PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING};
+    use super::{ChessError, PieceMoved, PieceCaptured, CastlingPerformed, PawnPromoted, GameEnded};
 
     fn execute(world: IWorldDispatcher, from: Position, to: Position) -> Result<(), ChessError> {
         // Get the current game state
