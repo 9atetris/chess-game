@@ -63,6 +63,6 @@ impl PieceUtils of PieceUtilsTrait {
             _KING => 'K',
             _ => '-',
         };
-        color.into() * 256 + type_char.into();
+        color.into() * 256 + type_char.into()
     }
 }
