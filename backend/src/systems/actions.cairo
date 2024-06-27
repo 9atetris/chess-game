@@ -283,20 +283,21 @@ mod actions {
         // Update castling rights
         if piece.get_type() == KING {
             let rights = if piece.get_color() { 0b1100 } else { 0b0011 };
-            game_state.castling_rights &= rights;
+            game_state.castling_rights = game_state.castling_rights & rights;
         } else if piece.get_type() == ROOK {
             if from.y == 0 {
                 let rights = if from.x == 0 { 0b1110 } else { 0b1101 };
-                game_state.castling_rights &= rights;
+                game_state.castling_rights = game_state.castling_rights & rights;
             } else if from.y == 7 {
                 let rights = if from.x == 0 { 0b1011 } else { 0b0111 };
-                game_state.castling_rights &= rights;
+                game_state.castling_rights = game_state.castling_rights & rights;
             }
         }
     
         set!(world, (0, game_state));
         Result::Ok(())
     }
+    
     
 
     fn can_castle(world: IWorldDispatcher, from: Position, to: Position, color: bool, castling_rights: u8) -> Result<bool, ChessError> {
