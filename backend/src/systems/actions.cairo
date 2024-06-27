@@ -330,7 +330,7 @@ mod actions {
     fn check_game_status(world: IWorldDispatcher, color: bool) -> u8 {
         let mut has_legal_moves = false;
         let mut is_in_check = is_king_in_check(world, color);
-
+    
         // Iterate through all pieces of the current player
         for x in 0..BOARD_SIZE {
             for y in 0..BOARD_SIZE {
@@ -347,15 +347,16 @@ mod actions {
                 break;
             }
         }
-
+    
         if is_in_check && !has_legal_moves {
-            1 // Checkmate
+            return 1; // Checkmate
         } else if !is_in_check && !has_legal_moves {
-            2 // Stalemate
+            return 2; // Stalemate
         } else {
-            0 // Game is ongoing
+            return 0; // Game is ongoing
         }
     }
+    
 
     fn is_king_in_check(world: IWorldDispatcher, color: bool) -> bool {
         // Find the king's position
