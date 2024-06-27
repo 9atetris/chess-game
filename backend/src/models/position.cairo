@@ -2,7 +2,7 @@ use array::ArrayTrait;
 use traits::Into;
 
 #[derive(Component, Copy, Drop, Serde)]
-struct Position {
-    x: u8,
-    y: u8
+pub struct Position {
+    pub x: u8,
+    pub y: u8
 }
