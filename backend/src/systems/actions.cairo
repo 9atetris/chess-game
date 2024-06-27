@@ -415,13 +415,14 @@ mod actions {
         let move_history = MoveHistory { from, to, piece, captured: Option::Some(captured) };
         
         // Get the current move count
-        let moves_count = get!(world, 0, (u32, 'moves_count'));
-
+        let moves_count = get!(world, 'moves_count');
+    
         // Store the move history in an array
-        let mut moves_array = get!(world, 0, (Array<MoveHistory>, 'moves_array'));
+        let mut moves_array = get!(world, 'moves_array');
         moves_array.push(move_history);
-
+    
         // Update the world state
-        set!(world, (0, ('moves_array', moves_array), ('moves_count', moves_count + 1)));
+        set!(world, ('moves_array', moves_array), ('moves_count', moves_count + 1));
     }
+    
 }
