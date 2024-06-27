@@ -171,16 +171,17 @@ mod actions {
         };
     
         // Check the result of the move validation
-        match valid {
-            Ok(valid) => {
+        let valid = match valid {
+            Ok!(valid) => {
                 if !valid {
-                    return Err(ChessError::InvalidMove);
+                    return Err!(ChessError::InvalidMove);
                 }
+                Ok!(())
             },
-            Err(e) => return Err(e),
-        }
+            Err!(e) => Err!(e),
+        };
     
-        Ok(())
+        valid
     }
 
     fn is_valid_pawn_move(from: Position, to: Position, color: bool, en_passant: Option<Position>) -> Result<bool, ChessError> {
