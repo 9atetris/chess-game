@@ -172,13 +172,13 @@ mod actions {
     
         // Check the result of the move validation
         let valid = match valid {
-            Ok!(valid) => {
+            Result::Ok(valid) => {
                 if !valid {
-                    return Err!(ChessError::InvalidMove);
+                    return Result::Err(ChessError::InvalidMove);
                 }
-                Ok!(())
+                Result::Ok(())
             },
-            Err!(e) => Err!(e),
+            Result::Err(e) => Result::Err(e),
         };
     
         valid
