@@ -69,12 +69,11 @@ mod actions {
     use option::OptionTrait;
     use traits::Into;
     use chess_game::models::position::Position;
-    use chess_game::models::piece::{Piece, PieceTrait};
     use chess_game::models::player::Player;
     use chess_game::models::game_state::GameState;
     use chess_game::models::move_history::MoveHistory;
+    use chess_game::models::piece::{Piece, PieceTrait, EMPTY, PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING};  // ここで EMPTY をインポート
 
-    use super::{BOARD_SIZE, PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING};
     use super::{ChessError, PieceMoved, PieceCaptured, CastlingPerformed, PawnPromoted, GameEnded};
 
     fn execute(world: IWorldDispatcher, origin: felt252, from: Position, to: Position) -> Result<(), ChessError> {
@@ -108,9 +107,12 @@ mod actions {
         }
         
         // Move the piece
-        set!(world, (from, Piece::new(0, false)));
-        set!(world, (to, piece));
-        emit!(world, PieceMoved { from, to, piece });
+        let empty_piece = PieceTrait::new(EMPTY, false);
+        set!(world, (
+            Piece { position: from, value: empty_piece.value },
+            Piece { position: to, value: piece.value }
+        ));
+
 
         // Handle special moves (castling, en passant, promotion)
         handle_special_moves(world, from, to, piece, game_state)?;
