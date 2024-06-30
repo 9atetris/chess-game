@@ -1,11 +1,16 @@
 use array::ArrayTrait;
 use option::OptionTrait;
+use dojo::model::Model;
+use dojo::database::introspect::Introspect;
 use super::position::Position;
 
-#[derive(Component, Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde)]
+#[dojo::model]
 pub struct GameState {
+    #[key]
+    game_id: u32,
     turn: bool,
-    status: u8, // 0=ongoing, 1=checkmate, 2=stalemate
+    status: u8,
     en_passant: Option<Position>,
-    castling_rights: u8 // Bit flags for castling rights
+    castling_rights: u8
 }

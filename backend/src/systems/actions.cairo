@@ -78,7 +78,8 @@ mod actions {
 
     fn execute(world: IWorldDispatcher, origin: felt252, from: Position, to: Position) -> Result<(), ChessError> {
         // Get the current game state
-        let mut game_state = get!(world, 0, GameState);
+        let game_id = 0; // または適切な game_id 値
+        let mut game_state = get!(world, (game_id), GameState);
 
         // Check if the game is over
         if game_state.status != 0 {
